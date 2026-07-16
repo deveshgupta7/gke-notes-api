@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: echo-server
+  namespace: notes-app
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: echo-server
+
+  template:
+    metadata:
+      labels:
+        app: echo-server
+
+    spec:
+      containers:
+      - name: echo-server
+
+        image: registry.k8s.io/echoserver:1.10
+
+        ports:
+        - containerPort: 8080
+
+        env:
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: echo-config
+              key: APP_ENV
+
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: echo-config
+              key: LOG_LEVEL
+
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: echo-config
+              key: APP_NAME
+
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: echo-secret
+              key: API_KEY
+
+        livenessProbe:
+
+          httpGet:
+            path: /
+            port: 8080
+
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:
+
+          httpGet:
+            path: /
+            port: 8080
+
+          initialDelaySeconds: 5
+          periodSeconds: 5
